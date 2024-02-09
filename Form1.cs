@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using System.Globalization;
 
 namespace FontModifier
 {
@@ -27,12 +20,14 @@ namespace FontModifier
         private Button saveButton;
         private Button loadButton;
         private SettingsController MainSettings;
+        private Panel panel;
         private int previousSelectionStart = 0;
         public Form1()
         {
             InitializeComponents();
             LoadFonts();
             Load += Form1_Load;
+            Resize += Form1_Resize;
         }
 
         private void InitializeComponents()
@@ -41,7 +36,7 @@ namespace FontModifier
 
             Text = "Взаимодействие со шрифтом";
             Width = 500;
-            Height = 500;
+            Height = 300;
 
 
             MainSettings = new SettingsController();
@@ -96,7 +91,7 @@ namespace FontModifier
             Controls.Add(boldCheckBox);
             Controls.Add(italicCheckBox);
 
-            Panel panel = new Panel();
+            panel = new Panel();
             panel.Location = new Point(0, 70);
             panel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom | AnchorStyles.Top;
             panel.Padding = new Padding(10, 100, 10, 10);
@@ -251,8 +246,7 @@ namespace FontModifier
             inputTextBox.Focus();
         }
 
-
-            private void FontComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        private void FontComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdatePreview("FontChanged");
         }
@@ -307,6 +301,33 @@ namespace FontModifier
 
             inputTextBox.Focus();
             inputTextBox.Select();
+        }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Normal)
+            {
+                if (Height > 500)
+                {
+                    panel.Padding = new Padding(50, panel.Padding.Top, 50, 50);
+                }
+                else if (Width > 1000)
+                {
+                    panel.Padding = new Padding(50, panel.Padding.Top, 50, panel.Padding.Bottom);
+                }
+                else
+                {
+                    panel.Padding = new Padding(10, panel.Padding.Top, 10, 10);
+                }
+            }
+            else if (WindowState == FormWindowState.Maximized)
+            {
+                panel.Padding = new Padding(50, panel.Padding.Top, 50, 50);
+            }
+            else
+            {
+                panel.Padding = new Padding(10, panel.Padding.Top, 10, 10);
+            }
         }
 
         private void SaveButton_Click(object sender, EventArgs e)
@@ -364,9 +385,7 @@ namespace FontModifier
                                 run.AppendChild(new Text(c.ToString()));
                             }
                         }
-
                         wordDocument.Save();
-
                         MessageBox.Show("Результаты успешно сохранены");
                     }
                 }
@@ -386,42 +405,25 @@ namespace FontModifier
                     {
                         MainDocumentPart mainPart = wordDocument.MainDocumentPart;
                         Body body = mainPart.Document.Body;
-
-                        // Clear the existing text in the inputTextBox
                         inputTextBox.Clear();
-
-                        // Iterate through the paragraphs in the Word document
                         foreach (Paragraph paragraph in body.Elements<Paragraph>())
                         {
-                            // Iterate through the runs in the paragraph
                             foreach (Run run in paragraph.Elements<Run>())
                             {
-                                // Get the font properties for the run
                                 RunProperties runProperties = run.GetFirstChild<RunProperties>();
-
-                                // Get the text of the run
                                 Text textElement = run.GetFirstChild<Text>();
                                 if (textElement == null)
                                 {
                                     continue;
 
                                 }
-                                // Get the text of the run
                                 string text = textElement.Text;
-
-                                // Append the text to the inputTextBox with the corresponding formatting
                                 inputTextBox.AppendText(text);
-
                                 int startIndex = inputTextBox.Text.Length - text.Length;
                                 int length = text.Length;
-
-                                // Apply the formatting to the appended text
                                 if (runProperties != null)
                                 {
-                                    // Get the font family
                                     string fontFamily = runProperties.GetFirstChild<RunFonts>()?.Ascii;
-
-                                    // Get the font size
                                     int? fontSizeValue;
                                     if (int.TryParse(runProperties.GetFirstChild<FontSize>()?.Val, out int parsedFontSize))
                                     {
@@ -433,23 +435,15 @@ namespace FontModifier
                                     }
 
                                     int fontSize = fontSizeValue ?? 12;
-
-                                    // Get the font color
                                     string colorHex = runProperties.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.Color>()?.Val;
                                     System.Drawing.Color fontColor = ParseFontColor(colorHex);
-
-                                    // Get the bold and italic styles
                                     bool isBold = runProperties.GetFirstChild<Bold>() != null;
                                     bool isItalic = runProperties.GetFirstChild<Italic>() != null;
-
-                                    // Apply the formatting to the appended text
                                     inputTextBox.Select(startIndex, length);
-                                    inputTextBox.SelectionFont = new System.Drawing.Font(fontFamily ?? "Arial", fontSize, (isBold ? FontStyle.Bold : FontStyle.Regular) | (isItalic ? FontStyle.Italic : FontStyle.Regular));
+                                    inputTextBox.SelectionFont = new System.Drawing.Font(fontFamily ?? "Times New Romain", fontSize, (isBold ? FontStyle.Bold : FontStyle.Regular) | (isItalic ? FontStyle.Italic : FontStyle.Regular));
                                     inputTextBox.SelectionColor = fontColor;
                                 }
                             }
-
-                            // Append a new line after each paragraph
                             inputTextBox.AppendText(Environment.NewLine);
                         }
                     }
@@ -457,18 +451,35 @@ namespace FontModifier
             }
         }
 
-        private System.Drawing.Color ParseFontColor(string colorHex)
+        private System.Drawing.Color ParseFontColor(string colorValue)
         {
-            if (!string.IsNullOrEmpty(colorHex) && colorHex.Length == 6)
+            if (!string.IsNullOrEmpty(colorValue))
             {
-                // Prepend the '#' character to the color hex code
-                colorHex = "#" + colorHex;
-
-                // Convert the color hex code to a Color object
-                return System.Drawing.ColorTranslator.FromHtml(colorHex);
+                if (colorValue.StartsWith("#") && colorValue.Length == 7)
+                {
+                    return System.Drawing.ColorTranslator.FromHtml(colorValue);
+                }
+                else
+                {   
+                    if(colorValue.Length == 6)
+                    {
+                        int hexValue;
+                        if (int.TryParse(colorValue, System.Globalization.NumberStyles.HexNumber, null, out hexValue))
+                        {
+                            colorValue = "#" + colorValue;
+                            return System.Drawing.ColorTranslator.FromHtml(colorValue);
+                        }
+                    }
+                    try
+                    {
+                        return System.Drawing.Color.FromName(colorValue);
+                    }
+                    catch
+                    {
+                        return System.Drawing.Color.Black;
+                    }
+                }
             }
-
-            // Return a default color if parsing fails
             return System.Drawing.Color.Black;
         }
     }
