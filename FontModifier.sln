@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31624.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FontModifier", "FontModifier.csproj", "{77767A23-568D-4EFE-B9E2-38E38F22B4B5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{77767A23-568D-4EFE-B9E2-38E38F22B4B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77767A23-568D-4EFE-B9E2-38E38F22B4B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77767A23-568D-4EFE-B9E2-38E38F22B4B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77767A23-568D-4EFE-B9E2-38E38F22B4B5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6DEE49F2-6DEC-4ED0-8E73-B18A45E2ED9A}
+	EndGlobalSection
+EndGlobal
